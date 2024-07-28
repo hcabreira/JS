@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pokedex</title>
+
+    <!-- Normalize CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css"
+        integrity="sha512-NhSC1YmyruXifcj/KFRWoC561YpHpc5Jtzgvbuzx5VozKpWvQ+4nXhPdFgmx8xqexRcpAglTj9sIBWINXa8x5w=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <!-- Font Roboto -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;500;700&display=swap" rel="stylesheet">
+
+    <!-- Nosso CSS -->
+    <link rel="stylesheet" href="assets/css/global.css">
+    <link rel="stylesheet" href="assets/css/pokedex.css">
+</head>
+
+<body>
+    <section class="content">
+        <h1>Pokedex</h1>
+
+        <ol id="pokemonList" class="pokemons">
+            <!-- ..... Pokemons here ..... -->
+        </ol>
+
+        <div class="pagination">
+            <button id="loadMoreButton" type="button">
+                Carregar Mais
+            </button>
+        </div>
+    </section>
+
+    <!-- Nosso JS -->
+    <script src="assets/js/pokemon-model.js"></script>
+    <script src="assets/js/poke-api.js"></script>
+    <script src="assets/js/main.js"></script>
+</body>
+
+</html>
+Passo 3: CSS
+Crie arquivos CSS para estilizar a Pokédex. Aqui estão os estilos básicos para global.css e pokedex.css.
+
+global.css
+css
+Copiar código
+body {
+    font-family: 'Roboto', sans-serif;
+    background-color: #f0f0f0;
+    margin: 0;
+    padding: 0;
+}
+
+.content {
+    width: 80%;
+    margin: 0 auto;
+    text-align: center;
+}
+
+h1 {
+    margin: 20px 0;
+}
+
+.pagination {
+    margin: 20px 0;
+}
+pokedex.css
+css
+Copiar código
+.pokemons {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.pokemons li {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    margin: 10px;
+    padding: 10px;
+    width: 150px;
+    text-align: center;
+}
+
+.pokemons img {
+    width: 100px;
+    height: 100px;
+}
+
+.pokemons h2 {
+    font-size: 1.2em;
+    margin: 10px 0;
+}
+Passo 4: JavaScript
+Crie arquivos JavaScript para a lógica do projeto.
+
+pokemon-model.js
+javascript
+Copiar código
+class Pokemon {
+    constructor(name, imageUrl) {
+        this.name = name;
+        this.imageUrl = imageUrl;
+    }
+}
+poke-api.js
+javascript
+Copiar código
+const pokeApi = {}
+
+pokeApi.getPokemonList = (offset = 0, limit = 10) => {
+    const url = `https://pokeapi.co/api/v2/pokemon?offset=${offset}&limit=${limit}`
+    return fetch(url)
+        .then(response => response.json())
+        .then(jsonBody => jsonBody.results)
+        .then(pokemons => pokemons.map(pokemon => {
+            return pokeApi.getPokemonDetail(pokemon.url)
+        }))
+        .then(detailRequests => Promise.all(detailRequests))
+        .then(pokemonsDetails => pokemonsDetails)
+}
+
+pokeApi.getPokemonDetail = (url) => {
+    return fetch(url)
+        .then(response => response.json())
+        .then(pokemon => new Pokemon(pokemon.name, pokemon.sprites.front_default))
+}
+main.js
+javascript
+Copiar código
+const pokemonList = document.getElementById('pokemonList')
+const loadMoreButton = document.getElementById('loadMoreButton')
+const limit = 10
+let offset = 0
+
+function loadPokemonItems(offset, limit) {
+    pokeApi.getPokemonList(offset, limit).then((pokemons = []) => {
+        const newHtml = pokemons.map((pokemon) => `
+            <li class="pokemon">
+                <img src="${pokemon.imageUrl}" alt="${pokemon.name}">
+                <h2>${pokemon.name}</h2>
+            </li>
+        `).join('')
+        pokemonList.innerHTML += newHtml
+    })
+}
+
+loadMoreButton.addEventListener('click', () => {
+    offset += limit
+    loadPokemonItems(offset, limit)
+})
+
+loadPokemonItems(offset, limit)

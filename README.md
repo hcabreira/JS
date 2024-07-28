@@ -1,2 +1,1 @@
-# JS
-conteudo do curso de js da dio
+# Trilha JS Developer - Pokedex
